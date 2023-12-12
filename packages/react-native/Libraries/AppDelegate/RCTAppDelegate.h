@@ -139,3 +139,10 @@
 - (NSURL *)bundleURL;
 
 @end
+
+
+@interface RCTSceneDelegate : NSObject<UIWindowSceneDelegate>
+
+@property (strong, nonatomic) UIWindow * window;
+
+@end

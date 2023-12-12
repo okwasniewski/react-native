@@ -41,6 +41,46 @@
 
 static NSString *const kRNConcurrentRoot = @"concurrentRoot";
 
+
+
+@implementation RCTSceneDelegate
+
+- (void)scene:(UIScene *)scene willConnectToSession:(UISceneSession *)session options:(UISceneConnectionOptions *)connectionOptions {
+    
+    BOOL enableBridgeless = NO;
+    BOOL fabricEnabled = YES;
+
+//    NSDictionary *initProps = updateInitialProps([self prepareInitialProps], fabricEnabled);
+    RCTAppDelegate* appDelegate = (RCTAppDelegate*)UIApplication.sharedApplication.delegate;
+
+    UIView *rootView = [self createRootViewWithBridge:appDelegate.bridge moduleName:appDelegate.moduleName initProps:appDelegate.initialProps];
+    
+    self.window = [[UIWindow alloc] initWithWindowScene:(UIWindowScene* )scene];
+    UIViewController *rootViewController = [self createRootViewController];
+    rootViewController.view = rootView;
+    self.window.rootViewController = rootViewController;
+    [self.window makeKeyAndVisible];
+}
+
+- (UIView *)createRootViewWithBridge:(RCTBridge *)bridge
+                          moduleName:(NSString *)moduleName
+                           initProps:(NSDictionary *)initProps
+{
+  BOOL enableFabric = YES;
+  UIView *rootView = RCTAppSetupDefaultRootView(bridge, moduleName, initProps, enableFabric);
+
+  rootView.backgroundColor = [UIColor systemBackgroundColor];
+
+  return rootView;
+}
+
+- (UIViewController *)createRootViewController
+{
+  return [UIViewController new];
+}
+
+@end
+
 @interface RCTAppDelegate () <
     RCTTurboModuleManagerDelegate,
     RCTComponentViewFactoryComponentProvider,
@@ -80,36 +120,12 @@ static NSDictionary *updateInitialProps(NSDictionary *initialProps, BOOL isFabri
 
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions
 {
-  BOOL enableTM = self.turboModuleEnabled;
-  BOOL enableBridgeless = self.bridgelessEnabled;
-  BOOL fabricEnabled = self.fabricEnabled;
-
-  NSDictionary *initProps = updateInitialProps([self prepareInitialProps], fabricEnabled);
-
-  RCTAppSetupPrepareApp(application, enableTM);
-
-  UIView *rootView;
-  if (enableBridgeless) {
-    // Enable native view config interop only if both bridgeless mode and Fabric is enabled.
-    RCTSetUseNativeViewConfigsInBridgelessMode(fabricEnabled);
-
-    // Enable TurboModule interop by default in Bridgeless mode
-    RCTEnableTurboModuleInterop(YES);
-    RCTEnableTurboModuleInteropBridgeProxy(YES);
-
-    [self createReactHost];
-    [self unstable_registerLegacyComponents];
-    [RCTComponentViewFactory currentComponentViewFactory].thirdPartyFabricComponentsProvider = self;
-    RCTFabricSurface *surface = [_reactHost createSurfaceWithModuleName:self.moduleName initialProperties:initProps];
-
-    RCTSurfaceHostingProxyRootView *surfaceHostingProxyRootView = [[RCTSurfaceHostingProxyRootView alloc]
-        initWithSurface:surface
-        sizeMeasureMode:RCTSurfaceSizeMeasureModeWidthExact | RCTSurfaceSizeMeasureModeHeightExact];
-
-    rootView = (RCTRootView *)surfaceHostingProxyRootView;
-  } else {
+    self.window.windowScene.delegate = [[RCTSceneDelegate alloc] init];
+    BOOL enableTM = self.turboModuleEnabled;
+    RCTAppSetupPrepareApp(application, enableTM);
+    
     if (!self.bridge) {
-      self.bridge = [self createBridgeWithDelegate:self launchOptions:launchOptions];
+        self.bridge = [self createBridgeWithDelegate:self launchOptions:@{}];
     }
     if ([self newArchEnabled]) {
       self.bridgeAdapter = [[RCTSurfacePresenterBridgeAdapter alloc] initWithBridge:self.bridge
@@ -119,17 +135,8 @@ static NSDictionary *updateInitialProps(NSDictionary *initialProps, BOOL isFabri
       [self unstable_registerLegacyComponents];
       [RCTComponentViewFactory currentComponentViewFactory].thirdPartyFabricComponentsProvider = self;
     }
-
-    rootView = [self createRootViewWithBridge:self.bridge moduleName:self.moduleName initProps:initProps];
-  }
-  self.window = [[UIWindow alloc] initWithFrame:[UIScreen mainScreen].bounds];
-  UIViewController *rootViewController = [self createRootViewController];
-  [self setRootView:rootView toRootViewController:rootViewController];
-  self.window.rootViewController = rootViewController;
-  self.window.windowScene.delegate = self;
-  [self.window makeKeyAndVisible];
-
-  return YES;
+    
+    return YES;
 }
 
 - (NSURL *)sourceURLForBridge:(RCTBridge *)bridge
