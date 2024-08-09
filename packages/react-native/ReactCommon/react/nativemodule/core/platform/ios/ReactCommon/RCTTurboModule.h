@@ -171,10 +171,17 @@ class JSI_EXPORT ObjCTurboModule : public TurboModule {
 }
 @end
 
-@protocol RCTTurboModule <NSObject>
+@protocol TurboModuleWrapper
 - (std::shared_ptr<facebook::react::TurboModule>)getTurboModule:
     (const facebook::react::ObjCTurboModule::InitParams &)params;
+@end
+
+@protocol RCTTurboModule <NSObject>
 @optional
+- (std::shared_ptr<facebook::react::TurboModule>)getTurboModule:
+    (const facebook::react::ObjCTurboModule::InitParams &)params;
+- (id<TurboModuleWrapper>) getWrapper;
+
 - (void)setEventEmitterCallback:(EventEmitterCallbackWrapper *)eventEmitterCallbackWrapper;
 @end
 
@@ -190,3 +197,5 @@ class JSI_EXPORT ObjCTurboModule : public TurboModule {
 - (std::shared_ptr<facebook::react::NativeMethodCallInvoker>)decorateNativeMethodCallInvoker:
     (std::shared_ptr<facebook::react::NativeMethodCallInvoker>)nativeMethodCallInvoker;
 @end
+
+

@@ -261,3 +261,13 @@ NativeSampleTurboModuleSpecJSI::NativeSampleTurboModuleSpecJSI(const ObjCTurboMo
   _eventEmitterCallback("onSubmit", value);
 }
 @end
+
+@implementation NativeSampleTurboModuleWrapper
+
+- (std::shared_ptr<facebook::react::TurboModule>)getTurboModule:
+   (const facebook::react::ObjCTurboModule::InitParams &)params;
+{
+  return std::make_shared<facebook::react::NativeSampleTurboModuleSpecJSI>(params);
+}
+
+@end

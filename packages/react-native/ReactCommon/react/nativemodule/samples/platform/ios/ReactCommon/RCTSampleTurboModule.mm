@@ -34,10 +34,8 @@ RCT_EXPORT_MODULE()
   return dispatch_get_main_queue();
 }
 
-- (std::shared_ptr<facebook::react::TurboModule>)getTurboModule:
-    (const facebook::react::ObjCTurboModule::InitParams &)params
-{
-  return std::make_shared<NativeSampleTurboModuleSpecJSI>(params);
+- (id<TurboModuleWrapper>)getWrapper {
+  return [[NativeSampleTurboModuleWrapper alloc] init];
 }
 
 // Backward compatible invalidation

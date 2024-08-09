@@ -390,7 +390,7 @@ typedef struct {
    * Use respondsToSelector: below to infer conformance to @protocol(RCTTurboModule). Using conformsToProtocol: is
    * expensive.
    */
-  if ([module respondsToSelector:@selector(getTurboModule:)]) {
+  if ([module respondsToSelector:@selector(getTurboModule:)] || [module respondsToSelector:@selector(getWrapper)]) {
     ObjCTurboModule::InitParams params = {
         .moduleName = moduleName,
         .instance = module,
@@ -399,8 +399,15 @@ typedef struct {
         .isSyncModule = methodQueue == RCTJSThread,
         .shouldVoidMethodsExecuteSync = (bool)RCTTurboModuleSyncVoidMethodsEnabled(),
     };
+    std::shared_ptr<facebook::react::TurboModule> turboModule = nullptr;
 
-    auto turboModule = [(id<RCTTurboModule>)module getTurboModule:params];
+    if ([module respondsToSelector:@selector(getTurboModule:)]) {
+      turboModule = [(id<RCTTurboModule>)module getTurboModule:params];
+    } else if ([module respondsToSelector:@selector(getWrapper)]) {
+      auto wrapper = [(id<RCTTurboModule>)module getWrapper];
+      turboModule = [wrapper getTurboModule:params];
+    }
+    
     if (turboModule == nullptr) {
       RCTLogError(@"TurboModule \"%@\"'s getTurboModule: method returned nil.", moduleClass);
     }
