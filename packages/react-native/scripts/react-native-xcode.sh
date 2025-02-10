@@ -151,6 +151,10 @@ else
   EXTRA_ARGS+=("--config-cmd" "'$NODE_BINARY' $NODE_ARGS '$REACT_NATIVE_DIR/cli.js' config")
 fi
 
+# PRODUCT_SETTINGS_PATH is where the target Info.plist file is. 
+# The asset catalog will be in the same folder.
+ASSET_CATALOG_DEST=${ASSET_CATALOG_DEST:-"$(dirname "$PRODUCT_SETTINGS_PATH")"}
+
 # shellcheck disable=SC2086
 "$NODE_BINARY" $NODE_ARGS "$CLI_PATH" $BUNDLE_COMMAND \
   $CONFIG_ARG \
@@ -159,6 +163,7 @@ fi
   --dev $DEV \
   --reset-cache \
   --bundle-output "$BUNDLE_FILE" \
+  --asset-catalog-dest "$ASSET_CATALOG_DEST" \
   --assets-dest "$DEST" \
   "${EXTRA_ARGS[@]}" \
   $EXTRA_PACKAGER_ARGS
