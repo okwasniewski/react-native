@@ -196,6 +196,11 @@ using namespace facebook::react;
 
 - (id<RCTTurboModule>)getModuleInstanceFromClass:(Class)moduleClass
 {
+  if (self.delegate.dependencyProvider == nil) {
+    [NSException raise:@"ReactNativeFactoryDelegate dependencyProvider is nil"
+                format:@"Delegate must provide a valid dependencyProvider"];
+  }
+
   return RCTAppSetupDefaultModuleFromClass(moduleClass, self.delegate.dependencyProvider);
 }
 
